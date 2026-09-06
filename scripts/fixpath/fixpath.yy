@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"fixpath",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"fixpath",
+  "parent":{
+    "name":"fix-path",
+    "path":"fix-path.yyp",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

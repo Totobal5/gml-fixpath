@@ -1,0 +1,11 @@
+{
+  "$GMNotes":"v1",
+  "%Name":"fixpath_License",
+  "name":"fixpath_License",
+  "parent":{
+    "name":"fix-path",
+    "path":"fix-path.yyp",
+  },
+  "resourceType":"GMNotes",
+  "resourceVersion":"2.0",
+}
