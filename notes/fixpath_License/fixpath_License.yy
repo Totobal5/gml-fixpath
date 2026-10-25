@@ -1,5 +1,5 @@
 {
-  "$GMNotes":"v1",
+  "$GMNotes":"v2",
   "%Name":"fixpath_License",
   "name":"fixpath_License",
   "parent":{

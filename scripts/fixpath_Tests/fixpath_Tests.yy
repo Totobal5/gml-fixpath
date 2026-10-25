@@ -1,12 +1,12 @@
 {
   "$GMScript":"v1",
-  "%Name":"fixpath",
+  "%Name":"fixpath_Tests",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"fixpath",
+  "name":"fixpath_Tests",
   "parent":{
-    "name":"fix-path",
-    "path":"fix-path.yyp",
+    "name":"Demo",
+    "path":"folders/Demo.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

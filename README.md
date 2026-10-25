@@ -8,7 +8,7 @@ The library only returns path strings. It does not open, read, write, or interpr
 
 | Module | Purpose |
 | --- | --- |
-| `scripts/fixpath/` | General file-path normalization, `datafiles/` resolution, and HTTP(S) URL normalization. |
+| `scripts/fixpath_Functions/` | General file-path normalization, `datafiles/` resolution, sandbox path resolution, and HTTP(S) URL normalization. |
 
 ## Generic path normalization
 
@@ -47,6 +47,19 @@ Sandbox disabled: filename_path(GM_project_filename) + "datafiles/Sprites/Algo.p
 
 Use paths without an initial slash, such as `Sprites/Algo.png`, so both modes form the same logical location without duplicate separators.
 
+## Resolved paths
+
+Use `fp_resolve_path()` when the path may be absolute but still has to work on a sandboxed target. It validates and normalizes exactly like `fp_path()`.
+
+With the sandbox disabled it returns the normalized path unchanged. With the sandbox enabled, an absolute path under the save area (`game_save_id`) or the game bundle (`working_directory`) is returned relative to that area, because sandboxed targets reject absolute paths. A path outside both areas is returned unchanged, since the sandbox cannot reach it either way.
+
+```gml
+var _settings_path = fp_resolve_path(game_save_id + "settings.json");
+// "settings.json"
+```
+
+Like the other helpers, it returns `undefined` when validation fails and never touches the file system.
+
 ## URLs
 
 Use `fp_url()` to validate and normalize an HTTP or HTTPS URL. It trims surrounding whitespace, converts backslashes to forward slashes, and converts the scheme to lowercase. The path, query, and fragment remain otherwise unchanged.
@@ -72,6 +85,10 @@ Validates and resolves a path relative to `datafiles/`. In sandbox mode it point
 
 Returns whether a path is a valid local file path. The `operation` argument is used in diagnostic messages.
 
+### `fp_resolve_path(path)`
+
+Validates and normalizes a path, then returns it relative to the save area or the game bundle when the target is sandboxed. Returns `undefined` for invalid input.
+
 ### `fp_url(url)`
 
 Validates and normalizes an HTTP or HTTPS URL by trimming it, converting `\\` to `/`, and changing its scheme to lowercase.
@@ -88,6 +105,7 @@ Returns whether a URL has an HTTP(S) scheme, a host, and no whitespace. The `ope
 - `fp_path()` normalizes a string; it does not establish whether that path is accessible on the current target.
 - In sandbox mode, GameMaker only permits access to the file bundle and save area.
 - `fp_datafiles_path()` uses the bundle in sandbox mode and the project source directory otherwise.
+- `fp_resolve_path()` only rewrites the root of an absolute path inside the save area or the bundle; it does not make any other path reachable.
 - Access to an external source-project path still depends on the target's sandbox setting and OS permissions.
 - URL helpers support only `http://` and `https://`; they validate and normalize strings but do not make network requests.
 

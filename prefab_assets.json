@@ -1,0 +1,17 @@
+{
+  "Version": "1.0",
+  "assets": [
+    {
+      "export": 2,
+      "name": "fixpath_Docs"
+    },
+    {
+      "export": 2,
+      "name": "fixpath_Functions"
+    },
+    {
+      "export": 2,
+      "name": "fixpath_License"
+    }
+  ]
+}
