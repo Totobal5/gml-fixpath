@@ -47,6 +47,37 @@ Sandbox disabled: filename_path(GM_project_filename) + "datafiles/Sprites/Algo.p
 
 Use paths without an initial slash, such as `Sprites/Algo.png`, so both modes form the same logical location without duplicate separators.
 
+## Save area paths
+
+`buffer_save_async()` does not write where the other file functions look. GameMaker resolves the same relative string differently depending on the API:
+
+| API | A relative path resolves to |
+| --- | --- |
+| `buffer_save_async`, `buffer_load_async` | the save area, inside a `default/` folder |
+| `file_exists`, `file_rename`, `file_find_first`, `file_text_*`, ... | the game bundle (sandbox on) or the executable's folder (sandbox off) |
+
+So one relative string names two different files, and GameMaker rejects absolute paths while the sandbox is on. `fp_sync_path()` returns the string that makes the synchronous functions reach what `buffer_save_async()` wrote, for the current target:
+
+```gml
+var _relative = "profile.dat";
+buffer_save_async(_buffer, _relative);      // writes save area/default/profile.dat
+file_exists(fp_sync_path(_relative));       // true, same file
+buffer_load_async(_buffer, _relative);      // load takes the path without default/
+```
+
+Its result depends on the target:
+
+- sandbox on → `default/profile.dat`, a relative path the sandbox resolves inside the save area;
+- sandbox off → the absolute path inside the save area.
+
+The absolute forms are available on their own: `fp_buffer_save_path()` (save area + `default/`) and `fp_save_area_path()` (save area root, for files you create with the synchronous functions). Both normalize separators, and both return an absolute input unchanged.
+
+`buffer_load_async()` is the exception: it takes the same relative path you passed to `buffer_save_async()`, without the `default/` part.
+
+On desktop with the sandbox disabled, `buffer_save_async()` uses an absolute path as-is and does not add `default/`.
+
+`fp_resolve_path()` does the opposite conversion (an absolute path inside the save area or the bundle becomes relative), so reach for it only when an API requires a sandbox-relative path.
+
 ## Resolved paths
 
 Use `fp_resolve_path()` when the path may be absolute but still has to work on a sandboxed target. It validates and normalizes exactly like `fp_path()`.
@@ -85,6 +116,26 @@ Validates and resolves a path relative to `datafiles/`. In sandbox mode it point
 
 Returns whether a path is a valid local file path. The `operation` argument is used in diagnostic messages.
 
+### `fp_is_absolute(path)`
+
+Returns whether a path is absolute on the current target: a leading `/`, or a drive letter on Windows. Returns `false` for invalid input.
+
+### `fp_join_path(directory, relative)`
+
+Joins a directory and a relative path with exactly one separator, converting backslashes to forward slashes. Useful to rebuild a full path from `file_find_first()` results, which come back without their directory. Returns `undefined` if either input is invalid.
+
+### `fp_sync_path(path)`
+
+Returns what the synchronous file functions need to reach a file written by `buffer_save_async()`: a relative path under `default/` while the sandbox is on, the absolute save-area path when it is off. An absolute input is returned unchanged.
+
+### `fp_save_area_path(path)`
+
+Validates and normalizes a path, then anchors a relative path in the save area root (`game_save_id`). Absolute paths are returned unchanged. Returns `undefined` for invalid input.
+
+### `fp_buffer_save_path(path)`
+
+Validates and normalizes a path, then anchors a relative path in the save area's `default/` folder, where `buffer_save_async()` writes. Absolute paths are returned unchanged. Returns `undefined` for invalid input.
+
 ### `fp_resolve_path(path)`
 
 Validates and normalizes a path, then returns it relative to the save area or the game bundle when the target is sandboxed. Returns `undefined` for invalid input.
@@ -106,6 +157,10 @@ Returns whether a URL has an HTTP(S) scheme, a host, and no whitespace. The `ope
 - In sandbox mode, GameMaker only permits access to the file bundle and save area.
 - `fp_datafiles_path()` uses the bundle in sandbox mode and the project source directory otherwise.
 - `fp_resolve_path()` only rewrites the root of an absolute path inside the save area or the bundle; it does not make any other path reachable.
+- `fp_save_area_path()` does not create the save area or check that the file exists; it only anchors a relative path.
+- `fp_buffer_save_path()` mirrors the documented `default/` folder of `buffer_save_async()`; it does not check that the buffer was actually saved.
+- `fp_sync_path()` follows the same documented layout; it does not check that the buffer was saved either.
+- `fp_save_area_path()` and `fp_resolve_path()` are inverses only while the target is sandboxed.
 - Access to an external source-project path still depends on the target's sandbox setting and OS permissions.
 - URL helpers support only `http://` and `https://`; they validate and normalize strings but do not make network requests.
 

@@ -1,9 +1,9 @@
 {
   "name": "@toto/fixpath",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "fixpath is a pure GML utility library for validating and normalizing file paths and HTTP(S) URLs. It supports generic paths, sandbox-aware datafiles resolution, and source-project paths for runtime hotload when the GameMaker file-system sandbox is disabled.",
   "files": [
-    "cyou.tobalsea.fixpath-1.0.0.yymps"
+    "cyou.tobalsea.fixpath-1.2.0.yymps"
   ],
   "keywords": [
     "utilities",
