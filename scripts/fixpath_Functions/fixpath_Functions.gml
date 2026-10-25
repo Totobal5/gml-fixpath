@@ -103,18 +103,26 @@ function fp_buffer_save_path(_path)
 };
 
 /// @desc Returns the path the synchronous file functions need to reach a file that
-/// buffer_save_async() wrote. Sandboxed targets reject absolute paths, so a relative path under
-/// "default/" is returned; unsandboxed targets get the absolute path inside the save area.
+/// buffer_save_async() wrote. It accepts the logical name, an absolute save-area path or an
+/// already resolved path, and returns the same answer for all of them, so it cannot be composed
+/// incorrectly. Sandboxed targets reject absolute paths, so a relative path under "default/" is
+/// returned; unsandboxed targets get the absolute path inside the save area.
 /// @param {String} path A path to resolve.
 /// @return {String|Undefined} The usable path or undefined if the path is invalid.
 function fp_sync_path(_path)
 {
 	var _norm = __fp_normalize(_path, "fp_sync_path");
-	if (is_undefined(_norm) || __fp_is_absolute(_norm) ) return _norm;
+	if (is_undefined(_norm) ) return undefined;
 
-	var _buffered = "default/" + _norm;
+	var _rel = __fp_strip_area(_norm);
 
-	return (GM_is_sandboxed) ? _buffered : fp_save_area_path(_buffered);
+	// Outside the save area and the bundle there is nothing left to anchor.
+	if (__fp_is_absolute(_rel) ) return _rel;
+
+	// buffer_save_async() writes under "default/", so add the folder once and never twice.
+	if (!string_starts_with(string_lower(_rel), "default/") ) _rel = "default/" + _rel;
+
+	return (GM_is_sandboxed) ? _rel : fp_save_area_path(_rel);
 };
 
 /// @desc Joins a directory and a relative path with exactly one separator, normalizing both.
@@ -139,25 +147,10 @@ function fp_join_path(_directory, _relative)
 /// @return {String|Undefined} The usable path or undefined if the path is invalid.
 function fp_resolve_path(_path)
 {
-	static __roots = [ __fp_root(game_save_id), __fp_root(working_directory) ];
-
 	var _norm = __fp_normalize(_path, "fp_resolve_path");
 	if (is_undefined(_norm) || !GM_is_sandboxed) return _norm;
 
-	var _lower = string_lower(_norm);
-	for (var i = 0; i < array_length(__roots); i++)
-	{
-		var _root = __roots[i];
-		if (_root.length <= 0) continue;
-
-		if (string_length(_norm) > _root.length && string_starts_with(_lower, _root.path) )
-		{
-			return string_delete(_norm, 1, _root.length);
-		}
-	}
-
-	// Outside the bundle and the save area the sandbox has nothing usable to offer.
-	return _norm;
+	return __fp_strip_area(_norm);
 };
 
 /// @desc Returns whether a URL is a valid HTTP or HTTPS URL.
@@ -283,4 +276,28 @@ function __fp_root(_area)
 	_root = string_lower(_root);
 
 	return { path: _root, length: string_length(_root) };
+};
+
+/// @ignore
+/// @desc Returns a path relative to the save area or the bundle when it sits inside either. The
+/// comparison roots are built once per process.
+/// @param {String} path A normalized, validated path.
+/// @return {String} The relative remainder, or the path unchanged when it is outside both areas.
+function __fp_strip_area(_path)
+{
+	static __roots = [ __fp_root(game_save_id), __fp_root(working_directory) ];
+
+	var _lower = string_lower(_path);
+	for (var i = 0; i < array_length(__roots); i++)
+	{
+		var _root = __roots[i];
+		if (_root.length <= 0) continue;
+
+		if (string_length(_path) > _root.length && string_starts_with(_lower, _root.path) )
+		{
+			return string_delete(_path, 1, _root.length);
+		}
+	}
+
+	return _path;
 };

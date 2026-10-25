@@ -70,6 +70,8 @@ Its result depends on the target:
 - sandbox on → `default/profile.dat`, a relative path the sandbox resolves inside the save area;
 - sandbox off → the absolute path inside the save area.
 
+It takes the logical name, the absolute save-area path from `fp_buffer_save_path()` or an already resolved path and answers the same for all of them, so it never needs to be composed with `fp_resolve_path()`.
+
 The absolute forms are available on their own: `fp_buffer_save_path()` (save area + `default/`) and `fp_save_area_path()` (save area root, for files you create with the synchronous functions). Both normalize separators, and both return an absolute input unchanged.
 
 `buffer_load_async()` is the exception: it takes the same relative path you passed to `buffer_save_async()`, without the `default/` part.
@@ -126,7 +128,7 @@ Joins a directory and a relative path with exactly one separator, converting bac
 
 ### `fp_sync_path(path)`
 
-Returns what the synchronous file functions need to reach a file written by `buffer_save_async()`: a relative path under `default/` while the sandbox is on, the absolute save-area path when it is off. An absolute input is returned unchanged.
+Returns what the synchronous file functions need to reach a file written by `buffer_save_async()`. It accepts the logical name, the absolute save-area form from `fp_buffer_save_path()`, or an already resolved path, and returns the same answer for all of them, so composing it with `fp_resolve_path()` is unnecessary: a relative path under `default/` while the sandbox is on, the absolute save-area path when it is off.
 
 ### `fp_save_area_path(path)`
 

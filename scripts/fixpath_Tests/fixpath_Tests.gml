@@ -256,6 +256,29 @@ function __fp_test_sync_path()
 		(GM_is_sandboxed) ? "default/profile/data.dat" : _absolute,
 		"fp_sync_path: follows the target's sandbox rule"
 	);
+
+	var _sync = fp_sync_path("profile\\data.dat");
+
+	__fp_test_assert_equal(
+		fp_sync_path("default/profile/data.dat"),
+		_sync,
+		"fp_sync_path: does not duplicate the default/ folder"
+	);
+	__fp_test_assert_equal(
+		fp_sync_path(fp_buffer_save_path("profile\\data.dat") ),
+		_sync,
+		"fp_sync_path: accepts the absolute buffer path"
+	);
+	__fp_test_assert_equal(
+		fp_sync_path(fp_resolve_path("profile\\data.dat") ),
+		_sync,
+		"fp_sync_path: composing fp_resolve_path changes nothing"
+	);
+	__fp_test_assert_equal(
+		fp_sync_path(_sync),
+		_sync,
+		"fp_sync_path: is idempotent"
+	);
 }
 
 /// @ignore
